@@ -7,6 +7,7 @@
 - `review` - 综述
 - `preprint` - 预印本
 - `method` - 方法论文
+- `thesis` - 硕博论文
 
 ### 2. 研究领域
 - `基因组学`
