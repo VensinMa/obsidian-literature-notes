@@ -1,0 +1,23 @@
+---
+title: "英文原标题"
+title_cn: "中文翻译标题"
+date: YYYY-MM-DD
+published: YYYY-MM-DD
+authors:
+  - Author1
+  - Author2
+journal: "Journal Name"
+doi: "https://doi.org/..."
+url: "https://..."
+tags:
+  - literature
+  - 研究领域
+  - 技术方法
+  - 物种
+  - 特征元素
+  - 应用
+  - 专有名词
+aliases: []
+status: 已读
+rating: ⭐⭐⭐⭐⭐
+---
