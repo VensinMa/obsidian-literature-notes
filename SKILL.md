@@ -18,11 +18,11 @@ platforms:
   - macos
   - windows
 requirements:
-  - poppler-utils (pdftotext, pdfimages)
+  - pymupdf
+  - pymupdf4llm
   - python3
   - python3-markdown
-  - curl
-  - jq
+  - requests
 env_vars:
   - ZOTERO_USER_ID
   - ZOTERO_API_KEY
@@ -53,7 +53,7 @@ hermes skill install obsidian-literature-notes
 ### 方式二：手动安装
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/obsidian-literature-notes.git
+git clone https://github.com/VensinMa/obsidian-literature-notes.git
 cd obsidian-literature-notes
 ./install.sh
 ```
@@ -73,7 +73,7 @@ cd obsidian-literature-notes
 
 ```bash
 ZOTERO_USER_ID=你的用户ID
-ZOTERO_API_KEY=你的APIKey
+ZOTERO_API_KEY=***
 OBSIDIAN_VAULT_PATH=/path/to/obsidian/vault
 ```
 
@@ -107,6 +107,28 @@ nano scripts/zotero-config.env
 ```
 请为这个 PDF 做笔记，并同步到 Zotero：/path/to/paper.pdf
 ```
+
+### 图片提取
+
+```bash
+# 使用 Python 脚本提取图片（推荐）
+python scripts/extract-images.py paper.pdf ./images/
+
+# 带过滤选项（过滤小图标）
+python scripts/extract-images.py paper.pdf ./images/ --min-size 50000
+
+# 输出 JSON 报告（包含图片信息和图注）
+python scripts/extract-images.py paper.pdf ./images/ --json report.json
+
+# 输出 Markdown 格式的图片引用
+python scripts/extract-images.py paper.pdf ./images/ --markdown images.md
+```
+
+**图片提取特性：**
+- ✅ 智能过滤小图标和背景纹理
+- ✅ 自动提取图注文本
+- ✅ 按页码和位置排序
+- ✅ 生成 JSON 报告和 Markdown 引用
 
 ## 笔记结构
 
@@ -167,10 +189,15 @@ python3 scripts/zotero-batch-add.py
 请求过于频繁，等待 5 分钟后重试。
 
 ### 图片提取失败
-安装 poppler-utils：
+安装 pymupdf：
 ```bash
-sudo apt install poppler-utils
+pip install pymupdf
 ```
+
+如果遇到问题，检查：
+1. PDF 是否为扫描版（需要 OCR）
+2. 图片是否为矢量图（无法直接提取）
+3. 使用 `--min-size` 参数调整过滤阈值
 
 ### 笔记格式问题
 确保使用最新版本，脚本会自动转换 Markdown 为 HTML。
@@ -181,5 +208,5 @@ MIT License
 
 ## 链接
 
-- GitHub: https://github.com/YOUR_USERNAME/obsidian-literature-notes
-- Issues: https://github.com/YOUR_USERNAME/obsidian-literature-notes/issues
+- GitHub: https://github.com/VensinMa/obsidian-literature-notes
+- Issues: https://github.com/VensinMa/obsidian-literature-notes/issues

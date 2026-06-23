@@ -73,4 +73,4 @@ pdftoppm -png -r 300 /path/to/paper.pdf /output/dir/page
 ## 联系支持
 
 如遇到其他问题，请提交 Issue：
-https://github.com/YOUR_USERNAME/obsidian-literature-notes/issues
+https://github.com/VensinMa/obsidian-literature-notes/issues

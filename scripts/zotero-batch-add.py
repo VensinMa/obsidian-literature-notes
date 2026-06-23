@@ -24,7 +24,7 @@ def load_config():
                     value = value.strip().strip('"').strip("'")
                     config[key] = value
     config['ZOTERO_USER_ID'] = os.environ.get('ZOTERO_USER_ID', config.get('ZOTERO_USER_ID', ''))
-    config['ZOTERO_API_KEY']='afXA1w5ATnoPqb68Dk9JT6CH', config.get('ZOTERO_API_KEY', ''))
+    config['ZOTERO_API_KEY'] = os.environ.get('ZOTERO_API_KEY', config.get('ZOTERO_API_KEY', ''))
     return config
 
 def md_to_zotero_html(md_text, title):
