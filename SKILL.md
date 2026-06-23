@@ -269,13 +269,19 @@ rating: ⭐⭐⭐⭐              # 评分：1-5个星星
 
 ### 笔记文件
 
-```
-阅读笔记｜YYYY-MM-DD｜中文标题｜YYYY-MM-DD.md
-```
+**格式规范**：`阅读笔记｜添加日期YYYY-MM-DD｜中文题目｜发表日期YYYY-MM-DD.md`
+
+| 位置 | 内容 | 说明 |
+|------|------|------|
+| 第1段 | 阅读笔记 | 固定前缀 |
+| 第2段 | 添加日期 | 笔记创建日期，YYYY-MM-DD格式 |
+| 第3段 | 中文题目 | 论文中文标题 |
+| 第4段 | 发表日期 | 论文发表日期，YYYY-MM-DD格式 |
 
 示例：
 ```
 阅读笔记｜2024-01-15｜泛基因组分析揭示橡树物种气候适应｜2024-01-10.md
+阅读笔记｜2026-06-23｜移动mRNA检测通用流程及低温胁迫下异种嫁接优势研究｜2020-03-15.md
 ```
 
 ### 图片目录
@@ -323,6 +329,8 @@ python3 scripts/zotero-batch-add.py
 - 专有名词：`EDTA`, `RepeatMasker`
 
 ## 故障排除
+
+> 📖 **详细参考**：[image-extraction-workflow.md](references/image-extraction-workflow.md) 包含图片提取的完整工作流和常见问题
 
 ### Windows 上 python3 命令不可用
 Windows 上 `python3` 可能不存在，使用 `python` 代替：
