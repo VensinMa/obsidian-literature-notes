@@ -134,8 +134,8 @@ python scripts/extract-images.py paper.pdf ./images/ --markdown images.md
 
 生成的笔记包含：
 
-1. **YAML Frontmatter** - 元数据（标题、作者、DOI、Tags）
-2. **文献信息** - 基本信息表格
+1. **YAML Frontmatter** - 完整的元数据（详见下方格式）
+2. **基本信息** - 表格形式展示核心信息
 3. **研究背景** - 完整翻译
 4. **研究方法** - 完整翻译
 5. **研究结果** - 完整翻译所有子章节
@@ -144,6 +144,51 @@ python scripts/extract-images.py paper.pdf ./images/ --markdown images.md
 8. **个人思考与延伸**
 9. **图片及图注** - 提取的图片和翻译的图注
 10. **原文翻译** - 摘要、引言、结果、讨论
+
+### YAML Frontmatter 格式规范
+
+```yaml
+---
+title: "英文原版完整标题（引号包裹）"
+title_cn: "中文翻译标题"
+date: YYYY-MM-DD          # 笔记创建日期
+published: YYYY-MM-DD     # 论文发表日期
+authors:                   # 作者列表（数组格式）
+  - Author One
+  - Author Two
+journal: 期刊名称
+doi: "DOI编号"
+url: "论文链接"
+tags:                      # 标签列表（15-20个）
+  - literature
+  - 领域标签1
+  - 领域标签2
+  - 方法标签1
+  - 物种标签
+  - 工具标签
+aliases:                   # 别名（便于搜索）
+  - 简称1
+  - 简称2
+status: read               # 阅读状态：unread/reading/read
+rating: 4                  # 评分：1-5
+---
+```
+
+**字段说明：**
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| `title` | ✅ | 英文原版标题 |
+| `title_cn` | ✅ | 中文翻译标题 |
+| `date` | ✅ | 笔记创建日期 |
+| `published` | ✅ | 论文发表日期 |
+| `authors` | ✅ | 作者列表（数组） |
+| `journal` | ✅ | 期刊名称 |
+| `doi` | ✅ | DOI 编号 |
+| `url` | ✅ | 论文链接 |
+| `tags` | ✅ | 标签列表（至少15个） |
+| `aliases` | ✅ | 别名列表 |
+| `status` | ✅ | 阅读状态 |
+| `rating` | ✅ | 评分（1-5） |
 
 ## 文件命名规范
 
@@ -184,6 +229,12 @@ python3 scripts/zotero-batch-add.py
 - 专有名词：`EDTA`, `RepeatMasker`
 
 ## 故障排除
+
+### Windows 上 python3 命令不可用
+Windows 上 `python3` 可能不存在，使用 `python` 代替：
+```bash
+python scripts/extract-images.py paper.pdf ./images/
+```
 
 ### Zotero API 429 错误
 请求过于频繁，等待 5 分钟后重试。
