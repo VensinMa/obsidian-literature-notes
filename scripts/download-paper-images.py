@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-论文图片下载工具 - 从出版商网站下载论文原始图片
+论文图片下载工具 - 从出版商网站下载论文原始高清图片
 用法: python download-paper-images.py <DOI> <output_dir>
 
 功能:
 - 支持多个主流出版商（Nature、Science、Cell等）
 - 自动解析DOI获取网站链接
-- 下载高清原始图片
+- 查找并下载原始高清图片（Full size image）
 - 生成Markdown格式的图片引用
 
 依赖: pip install requests beautifulsoup4
@@ -17,7 +17,7 @@ import re
 import json
 import argparse
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qs, unquote
 
 try:
     import requests
@@ -33,51 +33,77 @@ PUBLISHERS = {
         'name': 'Nature',
         'pattern': r'nature\.com/articles/',
         'img_selector': 'figure img, .c-article-section img',
-        'caption_selector': 'figure figcaption, .c-article-section figcaption'
+        'caption_selector': 'figure figcaption, .c-article-section figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/full/[^"]*?)"',
+            r'href="([^"]*?/original/[^"]*?)"',
+            r'data-full-size="([^"]*?)"',
+            r'class="[^"]*?full-size[^"]*?"[^>]*?href="([^"]*?)"',
+        ]
     },
     'science.org': {
         'name': 'Science',
         'pattern': r'science\.org/doi/',
         'img_selector': 'figure img, .article__body img',
-        'caption_selector': 'figure figcaption, .article__body figcaption'
+        'caption_selector': 'figure figcaption, .article__body figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/large/[^"]*?)"',
+            r'href="([^"]*?/full/[^"]*?)"',
+            r'data-large="([^"]*?)"',
+        ]
     },
     'cell.com': {
         'name': 'Cell Press',
         'pattern': r'cell\.com/',
         'img_selector': 'figure img, .article-body img',
-        'caption_selector': 'figure figcaption, .article-body figcaption'
+        'caption_selector': 'figure figcaption, .article-body figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/full/[^"]*?)"',
+            r'href="([^"]*?/original/[^"]*?)"',
+            r'data-full-size="([^"]*?)"',
+        ]
     },
     'elsevier.com': {
         'name': 'Elsevier',
         'pattern': r'elsevier\.com/',
         'img_selector': 'figure img, .article-body img',
-        'caption_selector': 'figure figcaption, .article-body figcaption'
+        'caption_selector': 'figure figcaption, .article-body figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/gr[0-9]+\.jpg)"',
+            r'href="([^"]*?/large/[^"]*?)"',
+        ]
     },
     'wiley.com': {
         'name': 'Wiley',
         'pattern': r'wiley\.com/',
         'img_selector': 'figure img, .article-body img',
-        'caption_selector': 'figure figcaption, .article-body figcaption'
+        'caption_selector': 'figure figcaption, .article-body figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/full/[^"]*?)"',
+            r'data-full="([^"]*?)"',
+        ]
     },
     'springer.com': {
         'name': 'Springer',
         'pattern': r'springer\.com/',
         'img_selector': 'figure img, .c-article-body img',
-        'caption_selector': 'figure figcaption, .c-article-body figcaption'
+        'caption_selector': 'figure figcaption, .c-article-body figcaption',
+        'full_size_patterns': [
+            r'href="([^"]*?/full/[^"]*?)"',
+            r'href="([^"]*?/original/[^"]*?)"',
+            r'data-full-size="([^"]*?)"',
+        ]
     }
 }
 
 
 def doi_to_url(doi):
     """将DOI转换为网站URL"""
-    # 移除DOI前缀
     doi = doi.strip()
     if doi.startswith('doi:'):
         doi = doi[4:].strip()
     if doi.startswith('https://doi.org/'):
         doi = doi[16:].strip()
-    
-    # 构建URL
     return f"https://doi.org/{doi}"
 
 
@@ -87,6 +113,96 @@ def get_publisher(url):
         if domain in url:
             return config
     return None
+
+
+def get_full_size_url(img_url, page_url, publisher):
+    """尝试获取原始高清图片URL"""
+    # 替换常见的缩略图URL模式
+    full_size_urls = []
+    
+    # Nature系列的特殊处理
+    if 'nature.com' in page_url or 'springer' in page_url:
+        # Nature的图片URL通常包含/lw685/、/m685/等尺寸标识
+        # 尝试替换为/full/获取原图
+        if '/lw' in img_url or '/m' in img_url:
+            # 替换尺寸标识为/full/
+            full_url = re.sub(r'/lw\d+/', '/full/', img_url)
+            full_url = re.sub(r'/m\d+/', '/full/', full_url)
+            full_size_urls.append(full_url)
+            
+            # 也尝试/original/路径
+            full_url2 = re.sub(r'/lw\d+/', '/original/', img_url)
+            full_url2 = re.sub(r'/m\d+/', '/original/', full_url2)
+            full_size_urls.append(full_url2)
+            
+            # 尝试移除尺寸限制参数
+            if '?' in img_url:
+                base_url = img_url.split('?')[0]
+                full_size_urls.append(base_url)
+    
+    # 通用处理：查找页面中的"Full size image"链接
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(page_url, headers=headers, timeout=30)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # 查找所有图片元素
+        figures = soup.find_all('figure')
+        for figure in figures:
+            img = figure.find('img')
+            if not img:
+                continue
+            
+            # 检查是否是当前图片
+            fig_img_url = img.get('src') or img.get('data-src')
+            if not fig_img_url:
+                continue
+            
+            fig_img_url = urljoin(page_url, fig_img_url)
+            
+            # 如果URL匹配或相似
+            if img_url in fig_img_url or fig_img_url in img_url:
+                # 查找"Full size image"链接
+                links = figure.find_all('a')
+                for link in links:
+                    href = link.get('href', '')
+                    text = link.get_text(strip=True).lower()
+                    
+                    # 检查链接文本
+                    if any(keyword in text for keyword in ['full size', 'original', 'high-res', '下载', 'download']):
+                        full_url = urljoin(page_url, href)
+                        full_size_urls.append(full_url)
+                    
+                    # 检查链接class
+                    link_class = link.get('class', [])
+                    if any(keyword in ' '.join(link_class).lower() for keyword in ['full', 'original', 'download']):
+                        full_url = urljoin(page_url, href)
+                        full_size_urls.append(full_url)
+                
+                # 查找data属性
+                for attr_name, attr_value in img.attrs.items():
+                    if 'full' in attr_name.lower() or 'original' in attr_name.lower():
+                        if attr_value and attr_value.startswith('http'):
+                            full_size_urls.append(attr_value)
+                        elif attr_value:
+                            full_size_urls.append(urljoin(page_url, attr_value))
+        
+        # 使用出版商特定的模式查找
+        if publisher and 'full_size_patterns' in publisher:
+            for pattern in publisher['full_size_patterns']:
+                matches = re.findall(pattern, response.text, re.IGNORECASE)
+                for match in matches:
+                    full_url = urljoin(page_url, match)
+                    if full_url not in full_size_urls:
+                        full_size_urls.append(full_url)
+    
+    except Exception as e:
+        print(f"  ⚠️  查找原图链接时出错: {e}")
+    
+    return full_size_urls
 
 
 def download_image(url, output_path, timeout=30):
@@ -102,14 +218,20 @@ def download_image(url, output_path, timeout=30):
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
         
+        # 检查文件大小，太小的可能是错误页面
+        file_size = os.path.getsize(output_path)
+        if file_size < 1000:  # 小于1KB可能是错误
+            print(f"  ⚠️  文件太小 ({file_size} bytes)，可能是错误页面")
+            return False
+        
         return True
     except Exception as e:
-        print(f"⚠️  下载失败 {url}: {e}")
+        print(f"  ⚠️  下载失败 {url}: {e}")
         return False
 
 
 def extract_images_from_nature(article_url, output_dir):
-    """从Nature系列网站提取图片"""
+    """从Nature系列网站提取图片，优先下载原图"""
     images = []
     
     try:
@@ -141,8 +263,12 @@ def extract_images_from_nature(article_url, output_dir):
             caption = figure.find('figcaption')
             caption_text = caption.get_text(strip=True) if caption else ''
             
+            # 查找原图链接
+            full_size_urls = get_full_size_url(img_url, article_url, {'name': 'Nature'})
+            
             images.append({
-                'url': img_url,
+                'thumbnail_url': img_url,
+                'full_size_urls': full_size_urls,
                 'caption': caption_text,
                 'index': i + 1
             })
@@ -153,45 +279,8 @@ def extract_images_from_nature(article_url, output_dir):
         return []
 
 
-def extract_images_from_doi(doi, output_dir):
-    """根据DOI提取图片"""
-    # 解析DOI获取URL
-    doi_url = doi_to_url(doi)
-    print(f"📄 DOI: {doi}")
-    print(f"🔗 URL: {doi_url}")
-    
-    # 获取实际URL（跟随重定向）
-    try:
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-        response = requests.head(doi_url, headers=headers, timeout=10, allow_redirects=True)
-        actual_url = response.url
-        print(f"🌐 实际URL: {actual_url}")
-    except Exception as e:
-        print(f"❌ 无法解析DOI: {e}")
-        return []
-    
-    # 识别出版商
-    publisher = get_publisher(actual_url)
-    if not publisher:
-        print(f"⚠️  不支持的出版商，将使用通用方法")
-        publisher = {'name': 'Unknown', 'pattern': '', 'img_selector': 'figure img', 'caption_selector': 'figure figcaption'}
-    
-    print(f"📚 出版商: {publisher['name']}")
-    
-    # 根据出版商选择提取方法
-    if 'nature.com' in actual_url:
-        images = extract_images_from_nature(actual_url, output_dir)
-    else:
-        # 通用提取方法
-        images = extract_images_generic(actual_url, output_dir, publisher)
-    
-    return images
-
-
 def extract_images_generic(article_url, output_dir, publisher):
-    """通用图片提取方法"""
+    """通用图片提取方法，优先下载原图"""
     images = []
     
     try:
@@ -204,10 +293,7 @@ def extract_images_generic(article_url, output_dir, publisher):
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # 查找所有图片
-        img_selector = publisher.get('img_selector', 'figure img')
-        caption_selector = publisher.get('caption_selector', 'figure figcaption')
-        
-        figures = soup.select('figure')
+        figures = soup.find_all('figure')
         
         for i, figure in enumerate(figures):
             img = figure.find('img')
@@ -226,8 +312,12 @@ def extract_images_generic(article_url, output_dir, publisher):
             caption = figure.find('figcaption')
             caption_text = caption.get_text(strip=True) if caption else ''
             
+            # 查找原图链接
+            full_size_urls = get_full_size_url(img_url, article_url, publisher)
+            
             images.append({
-                'url': img_url,
+                'thumbnail_url': img_url,
+                'full_size_urls': full_size_urls,
                 'caption': caption_text,
                 'index': i + 1
             })
@@ -239,7 +329,7 @@ def extract_images_generic(article_url, output_dir, publisher):
 
 
 def download_images(images, output_dir, prefix='fig'):
-    """下载所有图片"""
+    """下载所有图片，优先下载原图"""
     os.makedirs(output_dir, exist_ok=True)
     
     downloaded = []
@@ -248,40 +338,56 @@ def download_images(images, output_dir, prefix='fig'):
         filename = f"{prefix}_{img['index']:02d}.png"
         output_path = os.path.join(output_dir, filename)
         
-        print(f"📥 下载图片 {img['index']}: {img['url'][:80]}...")
+        print(f"\n📥 下载图片 {img['index']}:")
+        print(f"  📝 图注: {img['caption'][:60]}...")
         
-        if download_image(img['url'], output_path):
+        # 尝试下载原图
+        success = False
+        download_url = img['thumbnail_url']  # 默认使用缩略图
+        
+        # 优先尝试原图链接
+        if img['full_size_urls']:
+            print(f"  🔍 尝试下载原图...")
+            for full_url in img['full_size_urls']:
+                print(f"    尝试: {full_url[:80]}...")
+                if download_image(full_url, output_path):
+                    success = True
+                    download_url = full_url
+                    print(f"  ✅ 原图下载成功")
+                    break
+        
+        # 如果原图下载失败，使用缩略图
+        if not success:
+            print(f"  📥 使用缩略图...")
+            if download_image(img['thumbnail_url'], output_path):
+                success = True
+                download_url = img['thumbnail_url']
+                print(f"  ✅ 缩略图下载成功")
+        
+        if success:
+            # 获取文件大小
+            file_size = os.path.getsize(output_path)
+            size_str = f"{file_size / 1024:.1f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024 * 1024):.1f} MB"
+            
             downloaded.append({
                 'filename': filename,
                 'path': output_path,
                 'caption': img['caption'],
-                'index': img['index']
+                'index': img['index'],
+                'download_url': download_url,
+                'file_size': file_size,
+                'is_original': download_url in img['full_size_urls']
             })
-            print(f"  ✅ 保存到: {filename}")
+            print(f"  📁 保存到: {filename} ({size_str})")
         else:
             print(f"  ❌ 下载失败")
     
     return downloaded
 
 
-def generate_markdown(images, output_dir, pdf_filename=None):
-    """生成Markdown格式的图片引用"""
-    md_lines = []
-    md_lines.append("## 提取的图片\n")
-    md_lines.append(f"> 图片保存路径：`{os.path.basename(output_dir)}/`\n")
-    
-    for img in images:
-        md_lines.append(f"### Figure {img['index']} - {img['caption'][:50] if img['caption'] else '图片'}")
-        md_lines.append(f"![{img['filename']}]({img['filename']})")
-        md_lines.append(f"- **说明**：{img['caption'] if img['caption'] else '待补充说明'}")
-        md_lines.append("")
-    
-    return '\n'.join(md_lines)
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description='从出版商网站下载论文原始图片',
+        description='从出版商网站下载论文原始高清图片',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
@@ -301,14 +407,42 @@ def main():
     
     if not args.quiet:
         print("=" * 60)
-        print("📥 论文图片下载工具")
+        print("📥 论文图片下载工具（原图优先）")
         print("=" * 60)
     
+    # 解析DOI获取URL
+    doi_url = doi_to_url(args.doi)
+    print(f"📄 DOI: {args.doi}")
+    print(f"🔗 URL: {doi_url}")
+    
+    # 获取实际URL
+    try:
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.head(doi_url, headers=headers, timeout=10, allow_redirects=True)
+        actual_url = response.url
+        print(f"🌐 实际URL: {actual_url}")
+    except Exception as e:
+        print(f"❌ 无法解析DOI: {e}")
+        sys.exit(1)
+    
+    # 识别出版商
+    publisher = get_publisher(actual_url)
+    if not publisher:
+        print(f"⚠️  不支持的出版商，将使用通用方法")
+        publisher = {'name': 'Unknown'}
+    
+    print(f"📚 出版商: {publisher['name']}")
+    
     # 提取图片
-    images = extract_images_from_doi(args.doi, args.output_dir)
+    if 'nature.com' in actual_url:
+        images = extract_images_from_nature(actual_url, args.output_dir)
+    else:
+        images = extract_images_generic(actual_url, args.output_dir, publisher)
     
     if not images:
-        print("❌ 未找到图片，将尝试从PDF提取")
+        print("❌ 未找到图片")
         sys.exit(1)
     
     if not args.quiet:
@@ -319,13 +453,22 @@ def main():
     
     if not args.quiet:
         print(f"\n✅ 成功下载 {len(downloaded)} 张图片")
+        
+        # 统计原图和缩略图
+        original_count = sum(1 for d in downloaded if d['is_original'])
+        thumbnail_count = len(downloaded) - original_count
+        print(f"  📊 原图: {original_count} 张，缩略图: {thumbnail_count} 张")
     
     # 输出JSON报告
     if args.json:
         report = {
             'doi': args.doi,
+            'url': actual_url,
+            'publisher': publisher['name'],
             'output_dir': args.output_dir,
             'total_images': len(downloaded),
+            'original_count': sum(1 for d in downloaded if d['is_original']),
+            'thumbnail_count': sum(1 for d in downloaded if not d['is_original']),
             'images': downloaded
         }
         with open(args.json, 'w', encoding='utf-8') as f:
@@ -335,9 +478,22 @@ def main():
     
     # 输出Markdown引用
     if args.markdown:
-        md_content = generate_markdown(downloaded, args.output_dir)
+        md_lines = []
+        md_lines.append("## 提取的图片\n")
+        md_lines.append(f"> 图片保存路径：`{os.path.basename(args.output_dir)}/`\n")
+        
+        for img in downloaded:
+            size_str = f"{img['file_size'] / 1024:.1f} KB" if img['file_size'] < 1024 * 1024 else f"{img['file_size'] / (1024 * 1024):.1f} MB"
+            img_type = "原图" if img['is_original'] else "缩略图"
+            
+            md_lines.append(f"### Figure {img['index']} - {img['caption'][:50] if img['caption'] else '图片'}")
+            md_lines.append(f"![{img['filename']}]({img['filename']})")
+            md_lines.append(f"- **说明**：{img['caption'] if img['caption'] else '待补充说明'}")
+            md_lines.append(f"- **类型**：{img_type} ({size_str})")
+            md_lines.append("")
+        
         with open(args.markdown, 'w', encoding='utf-8') as f:
-            f.write(md_content)
+            f.write('\n'.join(md_lines))
         if not args.quiet:
             print(f"📝 Markdown引用已保存: {args.markdown}")
     
