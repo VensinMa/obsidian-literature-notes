@@ -846,4 +846,46 @@ MIT License
 ## 链接
 
 - GitHub: https://github.com/VensinMa/obsidian-literature-notes
+- Releases: https://github.com/VensinMa/obsidian-literature-notes/releases
 - Issues: https://github.com/VensinMa/obsidian-literature-notes/issues
+
+## 版本管理
+
+### 版本号规范
+
+使用语义化版本号：`v主版本.次版本.修订号`
+
+| 版本类型 | 说明 | 示例 |
+|----------|------|------|
+| 主版本 | 重大结构变更 | v2.0.0 |
+| 次版本 | 新增功能或章节 | v1.1.0 |
+| 修订号 | 格式修复或小改动 | v1.0.1 |
+
+### 创建Release流程
+
+每次更新skill后，需执行以下步骤：
+
+1. **提交代码**
+```bash
+git add -A
+git commit -m "更新说明"
+```
+
+2. **创建版本标签**
+```bash
+git tag -a v1.1.0 -m "版本说明"
+git push origin v1.1.0
+```
+
+3. **创建压缩包**
+```bash
+git archive --format=zip --prefix=obsidian-literature-notes-v1.1.0/ -o obsidian-literature-notes-v1.1.0.zip v1.1.0
+git archive --format=tar.gz --prefix=obsidian-literature-notes-v1.1.0/ -o obsidian-literature-notes-v1.1.0.tar.gz v1.1.0
+```
+
+4. **创建GitHub Release**
+   - 访问 https://github.com/VensinMa/obsidian-literature-notes/releases/new
+   - 选择标签版本
+   - 填写Release标题和说明
+   - 上传zip和tar.gz压缩包
+   - 点击"Publish release"
