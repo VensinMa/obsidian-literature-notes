@@ -894,20 +894,7 @@ rating: ⭐⭐⭐⭐
 - [ ] 图片使用`![[path]]`格式嵌入
 - [ ] 每张图片有中文说明
 - [ ] 图片路径正确
-- [ ] 包含"基本信息"表格
-- [ ] 包含"研究背景"章节
-- [ ] 包含"研究方法"章节
-- [ ] 包含"研究结果"章节
-- [ ] 包含"研究结论"章节
-- [ ] 包含"不同寻常/反常识的发现"章节
-- [ ] 包含"个人思考与延伸"章节
-- [ ] 包含"提取的图片"章节
-- [ ] 包含"原文翻译"章节
-
-**图片：**
-- [ ] 图片使用`![[path]]`格式嵌入
-- [ ] 每张图片有中文说明
-- [ ] 图片路径正确
+- [ ] 图片来源标注（网站原图/PDF提取）
 
 ## 文件命名规范
 
@@ -974,7 +961,9 @@ python3 scripts/zotero-batch-add.py
 
 ## 故障排除
 
-> 📖 **详细参考**：[image-extraction-workflow.md](references/image-extraction-workflow.md) 包含图片提取的完整工作流和常见问题
+> 📖 **详细参考**：
+> - [image-extraction-workflow.md](references/image-extraction-workflow.md) - 图片提取的完整工作流和常见问题
+> - [image-download-best-practices.md](references/image-download-best-practices.md) - 原图下载策略和出版商特定方法
 
 ### Windows 上 python3 命令不可用
 Windows 上 `python3` 可能不存在，使用 `python` 代替：
