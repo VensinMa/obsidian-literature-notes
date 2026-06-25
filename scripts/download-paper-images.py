@@ -58,7 +58,7 @@ PUBLISHERS = {
             r'data-large="([^"]*?)"',
             r'data-src="([^"]*?)"',
         ],
-        'url_transform': lambda url: url.replace('/medium/', '/large/').replace('/small/', '/large/')
+        'url_transform': lambda url: re.sub(r'/(small|medium|inline)/', '/large/', url)
     },
     
     # ==================== Cell Press系列 ====================
@@ -75,7 +75,7 @@ PUBLISHERS = {
             r'data-figure-link="([^"]*?)"',
             r'data-full-size="([^"]*?)"',
         ],
-        'url_transform': lambda url: url
+        'url_transform': lambda url: re.sub(r'(_med|_sm|_sml)(\.\w+)$', r'_lrg\2', url)
     },
     
     # ==================== Elsevier系列 ====================
@@ -92,7 +92,7 @@ PUBLISHERS = {
             r'href="([^"]*?/large/[^"]*?)"',
             r'data-figure-link="([^"]*?)"',
         ],
-        'url_transform': lambda url: url
+        'url_transform': lambda url: re.sub(r'(_med|_sm|_sml)(\.\w+)$', r'_lrg\2', url)
     },
     
     # ==================== Springer系列 ====================
@@ -173,7 +173,7 @@ PUBLISHERS = {
             r'href="([^"]*?/large/[^"]*?)"',
             r'data-full-size="([^"]*?)"',
         ],
-        'url_transform': lambda url: url
+        'url_transform': lambda url: re.sub(r'/(small|medium|inline)/', '/large/', url)
     },
     
     # ==================== PLOS系列 ====================
@@ -188,7 +188,7 @@ PUBLISHERS = {
             r'href="([^"]*?/large/[^"]*?)"',
             r'data-full-size="([^"]*?)"',
         ],
-        'url_transform': lambda url: url
+        'url_transform': lambda url: re.sub(r'size=inline', 'size=original', url)
     },
     
     # ==================== MDPI系列 ====================
