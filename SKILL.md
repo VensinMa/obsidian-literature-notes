@@ -95,10 +95,11 @@ nano scripts/zotero-config.env
 | 步骤 | 操作 | 验证点 |
 |------|------|--------|
 | **1. 提取PDF文本** | 使用pymupdf读取全文 | 获取完整内容 |
-| **2. 提取图片** | 运行extract-images.py | 确认图片已保存 |
-| **3. 生成笔记** | 按格式模板创建 | 包含所有必填章节 |
-| **4. 嵌入图片** | 在笔记中添加图片引用 | 使用`![[path]]`格式 |
-| **5. 格式检查** | 对照检查清单验证 | 所有项目打勾 |
+| **2. 图片计数** | 统计文中图片数量 | 确认主图、附图、表格数量 |
+| **3. 提取图片** | 网站下载或PDF提取 | 确认图片已保存 |
+| **4. 生成笔记** | 按格式模板创建 | 包含所有必填章节 |
+| **5. 嵌入图片** | 在笔记中添加图片引用 | 使用`![[path]]`格式 |
+| **6. 格式检查** | 对照检查清单验证 | 所有项目打勾 |
 
 #### 步骤详解
 
@@ -112,7 +113,55 @@ for i in range(doc.page_count):
 "
 ```
 
-**步骤2：提取图片（⚠️ 必须执行）**
+**步骤2：图片计数（⚠️ 必须执行）**
+
+> 在下载或提取图片前，必须先统计文中图片数量，确保完整性
+
+```bash
+# 统计文中图片数量
+python scripts/count-figures.py paper.pdf \
+  --json "output_dir/report.json" \
+  --markdown "output_dir/count-report.md"
+```
+
+**图片计数规则：**
+
+| 类型 | 识别模式 | 示例 |
+|------|----------|------|
+| **主图** | Fig/Figure/FIG + 数字 | Fig 1, Figure 2, FIG. 3 |
+| **附图** | Extended Data Fig/Figure + 数字 | Extended Data Fig 1 |
+| **补充图** | Supplementary Fig/Figure + 数字 | Supplementary Fig 1 |
+| **表格** | Table/TABLE + 数字 | Table 1, TABLE 2 |
+| **附表** | Extended Data Table + 数字 | Extended Data Table 1 |
+| **补充表** | Supplementary Table + 数字 | Supplementary Table 1 |
+
+**计数输出示例：**
+```
+📊 图片统计结果
+============================================================
+
+📈 主图 (Main Figures):
+  数量: 5
+  编号: 1, 2, 3, 4, 5
+  页码: Fig 1 (p.2)  Fig 2 (p.3)  Fig 3 (p.5)  Fig 4 (p.9)  Fig 5 (p.10)
+
+📈 附图 (Extended Data Figures):
+  数量: 10
+  编号: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+📋 表格 (Tables):
+  数量: 2
+  编号: 1, 2
+
+📋 附表 (Extended Data Tables):
+  数量: 0
+
+📊 总计:
+  图片: 15
+  表格: 2
+```
+
+**步骤3：提取图片（⚠️ 必须执行）**
 
 > **优先级：网站下载 > PDF提取**
 > 优先尝试从论文原网站下载高清图片，失败后再从PDF提取
@@ -952,6 +1001,12 @@ pip install requests beautifulsoup4
 2. 图片是否为矢量图（无法直接提取）
 3. 使用 `--min-size` 参数调整过滤阈值
 4. 网络连接是否正常
+
+### 图片计数不准确
+如果图片计数结果与预期不符，检查：
+1. PDF中的图片是否为矢量图（可能无法被识别）
+2. 图片标识格式是否被支持（Fig/Figure/FIG等）
+3. 附图标识是否正确（Extended Data Fig/Supplementary Fig等）
 
 ### 笔记格式问题
 确保使用最新版本，脚本会自动转换 Markdown 为 HTML。
