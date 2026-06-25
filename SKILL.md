@@ -113,6 +113,20 @@ for i in range(doc.page_count):
 ```
 
 **步骤2：提取图片（⚠️ 必须执行）**
+
+> **优先级：网站下载 > PDF提取**
+> 优先尝试从论文原网站下载高清图片，失败后再从PDF提取
+
+**方式一：从论文网站下载（推荐）**
+
+```bash
+# 根据DOI自动下载论文图片
+python scripts/download-paper-images.py "DOI编号" \
+  "$OBSIDIAN_VAULT_PATH/文献阅读笔记/images/论文简称_年份"
+```
+
+**方式二：从PDF提取（备用）**
+
 ```bash
 # 创建图片目录
 mkdir -p "$OBSIDIAN_VAULT_PATH/文献阅读笔记/images/论文简称_年份"
@@ -123,6 +137,23 @@ python scripts/extract-images.py paper.pdf \
   --min-size 5000 \
   --markdown "$OBSIDIAN_VAULT_PATH/文献阅读笔记/images/论文简称_年份/images.md"
 ```
+
+**图片提取流程：**
+
+| 步骤 | 操作 | 说明 |
+|------|------|------|
+| 1 | 解析DOI | 从论文DOI获取网站链接 |
+| 2 | 尝试网站下载 | 从出版商网站下载原始图片 |
+| 3 | 验证下载 | 检查图片是否成功下载 |
+| 4 | 备用PDF提取 | 如果网站下载失败，从PDF提取 |
+
+**支持的出版商：**
+- Nature系列（nature.com）
+- Science系列（science.org）
+- Cell Press（cell.com）
+- Elsevier（elsevier.com）
+- Wiley（wiley.com）
+- Springer（springer.com）
 
 **步骤3-4：生成笔记并嵌入图片**
 
@@ -911,10 +942,16 @@ python scripts/extract-images.py paper.pdf ./images/
 pip install pymupdf
 ```
 
+安装网站下载依赖：
+```bash
+pip install requests beautifulsoup4
+```
+
 如果遇到问题，检查：
 1. PDF 是否为扫描版（需要 OCR）
 2. 图片是否为矢量图（无法直接提取）
 3. 使用 `--min-size` 参数调整过滤阈值
+4. 网络连接是否正常
 
 ### 笔记格式问题
 确保使用最新版本，脚本会自动转换 Markdown 为 HTML。
