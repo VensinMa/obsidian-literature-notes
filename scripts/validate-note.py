@@ -45,7 +45,7 @@ REQUIRED_SECTIONS = [
     "创新点、验证与反常识发现",
     "局限性与注意事项",
     "对我的研究启发",
-    "原文翻译或精读摘录",
+    "原文逐段完整翻译",
     "参考与链接",
 ]
 
@@ -56,6 +56,12 @@ PLACEHOLDER_PATTERNS = [
     r"待填写",
     r"your\s+",
 ]
+
+LEGACY_TRANSLATION_SECTIONS = {
+    "原文翻译或精读摘录",
+    "原文精读摘录",
+    "摘要精读",
+}
 
 
 def split_frontmatter(text: str) -> tuple[str, str]:
@@ -149,6 +155,19 @@ def validate(path: Path) -> list[str]:
         content = section_body(body, section)
         if section in positions and len(content) < 10:
             errors.append(f"section is effectively empty: ## {section}")
+
+    for legacy in LEGACY_TRANSLATION_SECTIONS:
+        if legacy in found_names:
+            errors.append(f"legacy translation section is not allowed: ## {legacy}")
+
+    full_translation = section_body(body, "原文逐段完整翻译")
+    if full_translation:
+        if len(full_translation) < 1500:
+            errors.append("full body translation appears too short; translate the article body paragraph by paragraph")
+        banned_translation_markers = ["精读摘录", "摘要精读", "关键概念翻译", "summary only", "仅摘要"]
+        for marker in banned_translation_markers:
+            if marker in full_translation:
+                errors.append(f"full translation section contains summary/excerpt marker: {marker}")
 
     if "literature" not in frontmatter:
         errors.append("tags should include literature")

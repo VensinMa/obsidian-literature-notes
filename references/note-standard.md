@@ -139,9 +139,18 @@ Use a table:
 
 Make this actionable. Include transferable methods, reusable datasets, possible experiments, and caution points. If the user's research focus is unknown, state the inferred focus.
 
-### 原文翻译或精读摘录
+### 原文逐段完整翻译
 
-For full translation requests, preserve the paper's heading hierarchy and translate all content. For summary requests, include important original terms and concise Chinese explanations.
+This section is mandatory for every literature note. Translate the main article body completely and paragraph by paragraph. Do not summarize, excerpt, omit, compress, or replace it with a close-reading note.
+
+Required handling:
+- Preserve the original heading hierarchy and paragraph order.
+- Translate every paragraph under Abstract, Introduction, Results, Discussion, Methods/STAR Methods, Data and Code Availability, Acknowledgments, Author Contributions, and other main-article sections when present.
+- Keep equations, citations, gene names, sample IDs, database IDs, accession numbers, software names, and units unchanged unless a Chinese explanation is needed.
+- Preserve tables as Markdown tables when they are part of the article body; translate headers and prose cells while keeping numeric values and units unchanged.
+- Do not merge multiple original paragraphs into one Chinese paragraph.
+- If the PDF contains supplemental information after the references, translate supplemental text only when the user asks; otherwise record its presence in `## 参考与链接`.
+- If OCR/PDF extraction makes a paragraph unreadable, insert `【原文此处提取失败，需人工核查】` and identify the page.
 
 ### 参考与链接
 
@@ -159,4 +168,5 @@ Include DOI, paper URL, code/data links, image download sources, extraction repo
 - Every listed figure has a source status.
 - Obsidian embeds use `![[relative/path]]`.
 - Required tables are present.
+- `## 原文逐段完整翻译` exists and is not replaced by abstract-only translation, excerpts, or a close-reading summary.
 - No placeholder such as `{{title}}`, `待填写`, or `TODO` remains.

@@ -59,11 +59,12 @@ Every note must be a single Markdown file suitable for Obsidian and must include
   10. `## 创新点、验证与反常识发现`
   11. `## 局限性与注意事项`
   12. `## 对我的研究启发`
-  13. `## 原文翻译或精读摘录`
+  13. `## 原文逐段完整翻译`
   14. `## 参考与链接`
 - Obsidian image embeds in `![[relative/path.png]]` format.
 - No empty required section. Use `未在原文中明确说明` only when the paper genuinely does not provide the information.
 - File name format: `阅读笔记｜YYYY-MM-DD｜中文标题｜YYYY-MM-DD.md`.
+- The article body must be translated completely, paragraph by paragraph. Do not summarize, excerpt, omit, compress, or replace it with a close-reading note.
 
 ## Quality Rules
 
@@ -73,6 +74,7 @@ Every note must be a single Markdown file suitable for Obsidian and must include
 - Translate technical terms consistently. First mention should include English in parentheses, for example `泛基因组（pan-genome）`.
 - Keep the user research focus visible in `## 对我的研究启发`; when no focus is provided, infer cautiously from the paper domain.
 - Include figure source status for every figure: `publisher-original`, `pdf-extracted`, `not-found`, or `not-applicable`.
+- In `## 原文逐段完整翻译`, preserve the original article's heading hierarchy and paragraph order. Translate every paragraph of the main article body, including abstract, introduction, results, discussion, methods/STAR methods, data/code availability, acknowledgments, and author contributions when present. References and supplemental figure/table legends may be summarized unless the user explicitly requests full supplemental translation.
 
 ## Resource Map
 

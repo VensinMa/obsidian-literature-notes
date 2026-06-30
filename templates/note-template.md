@@ -107,9 +107,9 @@ zotero_key: "{{zotero_key}}"
 
 {{research_inspiration}}
 
-## 原文翻译或精读摘录
+## 原文逐段完整翻译
 
-{{translation_or_close_reading}}
+{{full_body_translation}}
 
 ## 参考与链接
 
