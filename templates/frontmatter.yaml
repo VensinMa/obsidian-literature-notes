@@ -1,23 +1,33 @@
 ---
-title: "英文原标题"
-title_cn: "中文翻译标题"
+title: "Original English title"
+title_cn: "中文标题"
 date: YYYY-MM-DD
 published: YYYY-MM-DD
 authors:
-  - Author1
-  - Author2
-journal: "Journal Name"
-doi: "https://doi.org/..."
+  - Author One
+  - Author Two
+journal: "Journal or repository name"
+doi: "10.xxxx/xxxxx"
 url: "https://..."
 tags:
   - literature
   - 研究领域
   - 技术方法
-  - 物种
-  - 特征元素
-  - 应用
-  - 专有名词
-aliases: []
-status: 已读
-rating: ⭐⭐⭐⭐⭐
+  - 物种或对象
+aliases:
+  - Paper short name
+status: read
+rating: ⭐⭐⭐⭐
+paper_type: research-article
+research_domain:
+  - genomics
+species:
+  - "未涉及"
+methods:
+  - "未提取"
+data_type:
+  - "未提取"
+code_url: "未提供"
+data_url: "未提供"
+zotero_key: "未同步"
 ---

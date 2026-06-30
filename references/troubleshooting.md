@@ -11,16 +11,9 @@ sudo -S -p '' apt install poppler-utils
 brew install poppler
 ```
 
-### python3-markdown 未找到
+### markdown Python 包未找到
 ```bash
-# Ubuntu/Debian
-sudo -S -p '' apt install python3-markdown
-
-# macOS
-brew install python-markdown
-
-# 或使用 pip
-pip3 install markdown
+pip install -r requirements.txt
 ```
 
 ## Zotero API 问题

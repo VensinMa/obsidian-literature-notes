@@ -1,6 +1,6 @@
 #!/bin/bash
 # Obsidian Literature Notes - 安装脚本
-# https://github.com/YOUR_USERNAME/obsidian-literature-notes
+# https://github.com/VensinMa/obsidian-literature-notes
 
 set -e
 
@@ -51,19 +51,27 @@ else
     echo "✅ pdftotext 已安装"
 fi
 
-# 检查 python3-markdown
+# 检查 Python 包
 if ! python3 -c "import markdown" 2>/dev/null; then
-    echo "❌ 未找到 python3-markdown"
+    echo "❌ 未找到 markdown"
     echo ""
-    echo "请安装 python3-markdown:"
+    echo "请安装 markdown:"
     if [ "${MACHINE}" = "Mac" ]; then
-        echo "  brew install python-markdown"
+        echo "  pip install -r requirements.txt"
     else
-        echo "  sudo apt install python3-markdown"
+        echo "  pip install -r requirements.txt"
     fi
     MISSING_DEPS=1
 else
-    echo "✅ python3-markdown 已安装"
+    echo "✅ markdown 已安装"
+fi
+
+if ! python3 -c "import fitz, requests, bs4" 2>/dev/null; then
+    echo "❌ 未找到 Python 依赖: pymupdf requests beautifulsoup4"
+    echo "  pip install -r requirements.txt"
+    MISSING_DEPS=1
+else
+    echo "✅ PDF/网络下载依赖已安装"
 fi
 
 if [ ${MISSING_DEPS} -eq 1 ]; then
@@ -116,7 +124,7 @@ echo "🎉 安装完成！"
 echo ""
 echo "📚 下一步："
 echo "1. 编辑配置文件: nano ${CONFIG_FILE}"
-echo "2. 在 Hermes Agent 中使用: 请为这个 PDF 做文献笔记"
+echo "2. 在 Hermes Agent 中使用: 请为这个 PDF 做标准化 Obsidian 文献笔记"
 echo ""
-echo "📖 文档: https://github.com/YOUR_USERNAME/obsidian-literature-notes"
+echo "📖 文档: https://github.com/VensinMa/obsidian-literature-notes"
 echo "========================================"
