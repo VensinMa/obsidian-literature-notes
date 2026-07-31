@@ -141,16 +141,20 @@ Make this actionable. Include transferable methods, reusable datasets, possible 
 
 ### 原文逐段完整翻译
 
-This section is mandatory for every literature note. Translate the main article body completely and paragraph by paragraph. Do not summarize, excerpt, omit, compress, or replace it with a close-reading note.
+This section is mandatory for every literature note. **翻译是笔记最核心的部分，必须占总篇幅60%以上。** Translate the main article body completely and paragraph by paragraph. Do not summarize, excerpt, omit, compress, or replace it with a close-reading note. 详见 SKILL.md 中的「原文翻译强制规范」。
 
 Required handling:
-- Preserve the original heading hierarchy and paragraph order.
-- Translate every paragraph under Abstract, Introduction, Results, Discussion, Methods/STAR Methods, Data and Code Availability, Acknowledgments, Author Contributions, and other main-article sections when present.
+- Preserve the original heading hierarchy and paragraph order. Each original paragraph becomes one Chinese paragraph — do NOT merge multiple paragraphs.
+- Translate every paragraph under Abstract, Introduction, Results, Discussion, Methods/STAR Methods, Data and Code Availability, Acknowledgments, Author Contributions, and other main-article sections when present. **No section may be skipped.**
 - Keep equations, citations, gene names, sample IDs, database IDs, accession numbers, software names, and units unchanged unless a Chinese explanation is needed.
 - Preserve tables as Markdown tables when they are part of the article body; translate headers and prose cells while keeping numeric values and units unchanged.
 - Do not merge multiple original paragraphs into one Chinese paragraph.
 - If the PDF contains supplemental information after the references, translate supplemental text only when the user asks; otherwise record its presence in `## 参考与链接`.
 - If OCR/PDF extraction makes a paragraph unreadable, insert `【原文此处提取失败，需人工核查】` and identify the page.
+
+**禁止的偷懒行为**：概括替代翻译、节选翻译、合并段落、跳过章节、要点罗列替代段落、前重后轻（Introduction详细但Discussion简略）。如果发现任何一种，翻译不合格。
+
+**自检**：完成翻译后，对比原文每个章节的段落数是否一致。翻译篇幅应 ≥ 笔记总篇幅的60%。
 
 ### 参考与链接
 
@@ -169,4 +173,7 @@ Include DOI, paper URL, code/data links, image download sources, extraction repo
 - Obsidian embeds use `![[relative/path]]`.
 - Required tables are present.
 - `## 原文逐段完整翻译` exists and is not replaced by abstract-only translation, excerpts, or a close-reading summary.
+- 翻译篇幅占笔记总篇幅 ≥ 60%。
+- 翻译覆盖原文所有章节（Abstract, Introduction, Methods, Results, Discussion, Acknowledgments），无遗漏。
+- 无概括替代、节选翻译、合并段落、跳过章节等偷懒行为。
 - No placeholder such as `{{title}}`, `待填写`, or `TODO` remains.
